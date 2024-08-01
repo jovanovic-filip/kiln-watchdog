@@ -7,27 +7,52 @@ import adafruit_max31855
 import adafruit_bitbangio as bitbangio
 import digitalio
 import statistics
+from supabase import create_client, Client
 
 # Force unbuffered output for logging
 sys.stdout.reconfigure(line_buffering=True)
 
 try:
-    from config import API_URL, API_KEY
+    from config import (
+        API_URL, API_KEY, 
+        SUPABASE_URL, SUPABASE_KEY, 
+        SCLK_PIN, MISO_PIN, CS_PIN, MOSI_PIN, LED_PIN
+    )
 except ImportError:
     print("Error: config.py file not found.")
-    print("Please create config.py based on config.example.py with your API key and URL first.")
+    print("Please create config.py based on config.example.py with your API key, URL and Supabase credentials.")
     sys.exit(1)
 
-READ_INTERVAL_SECONDS: float = 3.0 
-READINGS_BEFORE_UPLOAD: int = 20
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-spi_sclk = board.D22
-spi_miso = board.D17
-spi_cs = board.D27
-spi_mosi = board.D10
+def getRemoteSupabaseConfig():
+    try:
+        response = supabase.table('rpi_config').select('*').execute()
+        if response.data and len(response.data) > 0:
+            config = response.data[0]
+            return config
+        else:
+            print("No configuration found in Supabase")
+            sys.exit(1)
+    except Exception as e:
+        print(f"Error fetching configuration from Supabase: {e}")
+        sys.exit(1)
+
+remoteConfig = getRemoteSupabaseConfig()
+READ_INTERVAL_SECONDS = remoteConfig.get('read_interval', 3.0)
+READINGS_BEFORE_UPLOAD = remoteConfig.get('readings_before_upload', 20)
+
+
+def get_board_pin(pin_number: int):
+    return getattr(board, f"D{pin_number}")
+
+spi_sclk = get_board_pin(SCLK_PIN)
+spi_miso = get_board_pin(MISO_PIN)
+spi_cs = get_board_pin(CS_PIN)
+spi_mosi = get_board_pin(MOSI_PIN)
+led_pin = digitalio.DigitalInOut(get_board_pin(LED_PIN))
+
 spi = bitbangio.SPI(spi_sclk, spi_mosi, spi_miso)
-
-led_pin = board.D8
 led_pin.direction = digitalio.Direction.OUTPUT
 
 cs = digitalio.DigitalInOut(spi_cs)
@@ -76,6 +101,8 @@ def uploadTemperature(temperature: float, timestamp: int, humanTime: str) -> Non
 
 if __name__ == "__main__":
     print("Starting temperature monitoring and uploading...")
+    print(f"READ INTERVAL SECONDS: {READ_INTERVAL_SECONDS}")
+    print(f"READINGS BEFORE UPLOAD: {READINGS_BEFORE_UPLOAD}")
     numberOfReads: int = 0
     temperatures: List[float] = []
     

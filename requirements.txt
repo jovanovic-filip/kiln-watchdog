@@ -2,3 +2,4 @@ requests
 adafruit-circuitpython-max31855
 adafruit-circuitpython-bitbangio
 RPi.GPIO
+supabase>=1.0.0
