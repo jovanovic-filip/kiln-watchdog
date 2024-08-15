@@ -1,3 +1,4 @@
+import sys
 import time
 import requests
 from typing import Dict, Union, List
@@ -5,14 +6,16 @@ import board
 import adafruit_max31855
 import adafruit_bitbangio as bitbangio
 import digitalio
-import sys
 import statistics
+
+# Force unbuffered output
+sys.stdout.reconfigure(line_buffering=True)
 
 try:
     from config import API_URL, API_KEY
 except ImportError:
     print("Error: config.py file not found.")
-    print("Please create config.py based on config.example.py with your API_URL and API_KEY.")
+    print("Please create config.py based on config.example.py with your API key and URL first.")
     sys.exit(1)
 
 READ_INTERVAL_SECONDS: float = 3.0 
