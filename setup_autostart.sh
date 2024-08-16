@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Script for setting up automatic startup of temperature-sender-rpi.py
+# Script for setting up automatic startup of KilnWatchdog
 # when Raspberry Pi boots
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WRAPPER_SCRIPT="$SCRIPT_DIR/run_temperature.sh"
-LOG_PATH="$SCRIPT_DIR/temperature.log"
+WRAPPER_SCRIPT="$SCRIPT_DIR/run_kiln_watchdog.sh"
+LOG_PATH="$SCRIPT_DIR/kiln_watchdog.log"
 
 # Check if config file exists
 if [ ! -f "$SCRIPT_DIR/config.py" ]; then
@@ -19,12 +19,12 @@ chmod +x "$WRAPPER_SCRIPT"
 
 # Set up systemd service
 echo "Setting up automatic startup using systemd..."
-SERVICE_FILE="/etc/systemd/system/temperature-sender.service"
+SERVICE_FILE="/etc/systemd/system/KilnWatchdog.service"
 
 # Create systemd service file
-cat > /tmp/temperature-sender.service << EOL
+cat > /tmp/KilnWatchdog.service << EOL
 [Unit]
-Description=Temperature Sensor Service
+Description=Kiln Watchdog
 After=network.target
 
 [Service]
@@ -45,16 +45,16 @@ chmod 644 "$LOG_PATH"
 chown "$USER:$(id -gn $USER)" "$LOG_PATH"
 
 # Copy file to system location
-sudo mv /tmp/temperature-sender.service $SERVICE_FILE
+sudo mv /tmp/KilnWatchdog.service $SERVICE_FILE
 
 # Enable and start the service
 sudo systemctl daemon-reload
-sudo systemctl enable temperature-sender.service
-sudo systemctl restart temperature-sender.service
+sudo systemctl enable KilnWatchdog.service
+sudo systemctl restart KilnWatchdog.service
 
 echo "Successfully set up automatic startup using systemd!"
 echo "Service status:"
-sudo systemctl status temperature-sender.service --no-pager
+sudo systemctl status KilnWatchdog.service --no-pager
 
 echo
 echo "Setup complete! Your script will run automatically at system startup."
