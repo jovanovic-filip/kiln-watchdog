@@ -15,3 +15,4 @@ CS_PIN: int = 27
 MOSI_PIN: int = 10
 LED_PIN_OK: int = 8 
 LED_PIN_ERROR: int = 7
+ALARM_PIN: int = 5

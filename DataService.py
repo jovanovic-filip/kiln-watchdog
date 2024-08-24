@@ -16,7 +16,7 @@ class DataService:
     
     def get_config(self) -> Dict[str, Any]:
         try:
-            response = self.supabase.table('rpi_config').select('*').eq('device_id', self.device_id).execute()
+            response = self.supabase.table('device_config').select('*').eq('device_id', self.device_id).execute()
             if response.data and len(response.data) > 0:
                 return response.data[0]
             else:
@@ -26,12 +26,13 @@ class DataService:
             print(f"Error fetching configuration from Supabase: {e}")
             sys.exit(1)
     
-    def sendTemperature(self, temperature: float, timestamp: int) -> Dict[str, Any]:
+    def sendTemperature(self, temperature: float, timestamp: int, isAlarm: bool = False) -> Dict[str, Any]:
         try:
             data = {
                 "device_id": self.device_id,
                 "temperature": temperature,
-                "timestamp": timestamp
+                "timestamp": timestamp,
+                "isAlarm": isAlarm,
             }
             response = self.supabase.table('temperature_readings').insert(data).execute()
             return {
@@ -63,5 +64,5 @@ try:
     )
 except ImportError:
     print("Error: config.py file not found.")
-    print("Please create config.py based on config.example.py with your API key, URL and Supabase credentials.")
+    print("Please create config.py based on config.example.py with your Supabase credentials.")
     sys.exit(1) 

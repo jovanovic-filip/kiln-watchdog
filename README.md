@@ -1,6 +1,6 @@
 # Kiln Watchdog
 
-A simple kiln watchdog service to read temperature from MAX31855 and K-type probe on RPI.
+A simple kiln watchdog service to monitor temperature with MAX31855 and K-type probe on RPi.
 
 ### Features
 
@@ -39,15 +39,17 @@ Create a copy of `config.example.py` named `config.py` with your actual values f
 
 You should have the following tables in your Supabase project:
 
-#### Table `rpi_config`:
+#### Table `device_config`:
 - `device_id` (text): Set to the value that corresponds to your device
 - `read_interval` (float): Time in seconds between temperature readings
 - `readings_before_upload` (int): Number of readings before calculating median and uploading
+- `max_temperature` (int): Readout above this value will trigger alarm
 
 #### Table `temperature_readings`:
 - `device_id` (text): ID of the device that sent the data
 - `temperature` (float): Measured temperature
 - `timestamp` (bigint): UNIX timestamp when the temperature was measured
+- `isAlarm` (bool): bool to mark when alarm was raised
 
 ## Steps to install on RPi
 ```
@@ -105,4 +107,3 @@ sudo journalctl -u kiln-watchdog.service
 ## TODOs:
 - Error to readings ratio to be uploaded (confidence ratio)
 - Calibration parameters for probe
-- Alarm output in case of limit temperature is reached
