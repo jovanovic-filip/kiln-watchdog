@@ -6,29 +6,19 @@ import adafruit_max31855
 import adafruit_bitbangio as bitbangio
 import digitalio
 import statistics
-from DataService import createDataService
+from DataService import dataService
 
 # Force unbuffered output for logging
 sys.stdout.reconfigure(line_buffering=True)
 
 try:
     from config import (
-        DEVICE_ID, API_URL, API_KEY, 
-        SUPABASE_URL, SUPABASE_KEY, 
         SCLK_PIN, MISO_PIN, CS_PIN, MOSI_PIN, LED_PIN_OK, LED_PIN_ERROR
     )
 except ImportError:
     print("Error: config.py file not found.")
     print("Please create config.py based on config.example.py with your API key, URL and Supabase credentials.")
     sys.exit(1)
-
-dataService = createDataService(
-    device_id = DEVICE_ID, 
-    api_url = API_URL, 
-    api_key = API_KEY,
-    supabase_url = SUPABASE_URL, 
-    supabase_key = SUPABASE_KEY
-)
 
 remote_config = dataService.get_config()
 READ_INTERVAL_SECONDS = remote_config.get('read_interval', 3.0)

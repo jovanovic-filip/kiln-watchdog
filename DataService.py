@@ -1,16 +1,12 @@
 from typing import Dict, Any
 import sys
-import requests
 from supabase import create_client
 
 class DataService:
     
-    def __init__(self, device_id: str, api_url: str, api_key: str, 
-                 supabase_url: str, supabase_key: str):
+    def __init__(self, device_id: str, supabase_url: str, supabase_key: str):
       
         self.device_id = device_id
-        self.api_url = api_url
-        self.api_key = api_key
         
         try:
             self.supabase = create_client(supabase_url, supabase_key)
@@ -20,7 +16,7 @@ class DataService:
     
     def get_config(self) -> Dict[str, Any]:
         try:
-            response = self.supabase.table('device_config').select('*').eq('device_id', self.device_id).execute()
+            response = self.supabase.table('rpi_config').select('*').eq('device_id', self.device_id).execute()
             if response.data and len(response.data) > 0:
                 return response.data[0]
             else:
@@ -32,26 +28,18 @@ class DataService:
     
     def sendTemperature(self, temperature: float, timestamp: int) -> Dict[str, Any]:
         try:
-            payload = {
+            data = {
                 "device_id": self.device_id,
                 "temperature": temperature,
                 "timestamp": timestamp
             }
-            
-            headers = {
-                "Content-Type": "application/json",
-                "x-api-key": self.api_key
-            }
-            
-            response = requests.post(self.api_url, json=payload, headers=headers)
-            
+            response = self.supabase.table('temperature_readings').insert(data).execute()
             return {
-                "success": response.status_code == 200,
-                "status_code": response.status_code,
-                "response": response.text
+                "success": True,
+                "response": "Data saved to Supabase"
             }
         except Exception as e:
-            print(f"Error sending data: {e}")
+            print(f"Error sending data to Supabase: {e}")
             return {
                 "success": False,
                 "error": str(e)
@@ -60,8 +48,20 @@ class DataService:
 def createDataService(**config) -> DataService:
     return DataService(
         device_id=config.get("device_id", ""),
-        api_url=config.get("api_url", ""),
-        api_key=config.get("api_key", ""),
         supabase_url=config.get("supabase_url", ""),
         supabase_key=config.get("supabase_key", "")
     ) 
+
+try:
+    from config import (
+        DEVICE_ID, SUPABASE_URL, SUPABASE_KEY
+    )
+    dataService = createDataService(
+        device_id = DEVICE_ID, 
+        supabase_url = SUPABASE_URL, 
+        supabase_key = SUPABASE_KEY
+    )
+except ImportError:
+    print("Error: config.py file not found.")
+    print("Please create config.py based on config.example.py with your API key, URL and Supabase credentials.")
+    sys.exit(1) 
